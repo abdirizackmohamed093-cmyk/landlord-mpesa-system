@@ -199,13 +199,13 @@ elif page == "💳 Payment Cards":
         name, code = cursor.fetchone()
         st.markdown(f"""
         <div style="border: 2px solid #28a745; padding: 20px; border-radius: 10px; background-color: #f8fff9; text-align: center;">
-            <h2 style="color: #28a745;">LIPA NA M-PESA BUY GOODS</h2>
-            <p>Please use these instructions at the shop to ensure your payment clears immediately:</p>
-            <hr style="border-top: 1px solid #ced4da;">
-            <h3>1. Go to Lipa na M-Pesa ➡️ Buy Goods and Services</h3>
-            <h3>2. Enter Till Number: <span style="color: #28a745; font-weight: bold;">3463030</span></h3>
-            <h3>3. Once the payment completes, your transaction details will instantly update your balance.</h3>
-            <br>
+            <h2 style="color: #28a745;">LIPA NA M-PESA PAYBILL</h2>
+<p>Please use the following details to pay your rent via M-Pesa:</p>
+<hr style="border-top: 1px solid #ced4da;">
+<h3>1. Go to Lipa na M-Pesa ➡️ Pay Bill</h3>
+<h3>2. Business Number: <span style="color: #28a745; font-weight: bold;">174379</span></h3>
+<h3>3. Account Number: <span style="color: #28a745; font-weight: bold;">{code}</span></h3>
+<h3>4. Enter Amount and confirm with your PIN</h3>
             <p><strong>Registered Tenant Reference:</strong> {name} ({code})</p>
             <small style="color: #6c757d;">Your unique dashboard assignment identifier code is tied directly to your room records.</small>
         </div>
