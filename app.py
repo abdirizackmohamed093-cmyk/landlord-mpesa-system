@@ -9,10 +9,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Set up page configurations
 st.set_page_config(page_title="Rental Management System", layout="wide")
 
-# Database Connection Helper Function
 def get_db_connection():
     return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
@@ -34,10 +32,8 @@ def generate_unique_code(cursor):
 def process_incoming_payment(unique_code, amount, target_month):
     conn = get_db_connection()
     cursor = conn.cursor(buffered=True)
-    
     cursor.execute("SELECT id, tenant_name FROM tenants WHERE unique_code = %s", (unique_code,))
     result = cursor.fetchone()
-    
     if result:
         tenant_id, tenant_name = result
         cursor.execute(
@@ -48,7 +44,6 @@ def process_incoming_payment(unique_code, amount, target_month):
         msg = f"✅ Matched payment of KES {amount:,} to {tenant_name} for {target_month}"
     else:
         msg = f"❌ Error: No tenant found with code {unique_code}"
-        
     cursor.close()
     conn.close()
     return msg
@@ -61,7 +56,6 @@ months_list = [
 ]
 month_options = [f"{m} {current_year}" for m in months_list]
 
-# --- SIDEBAR NAVIGATION ---
 st.sidebar.title("🏢 Rental System")
 page = st.sidebar.radio("Navigate To:", [
     "📊 Dashboard", 
@@ -73,14 +67,11 @@ page = st.sidebar.radio("Navigate To:", [
     "🔔 Notify Tenants"
 ])
 
-# --- PAGE: DASHBOARD ---
 if page == "📊 Dashboard":
     st.title("Financial Dashboard")
     conn = get_db_connection()
-    
     st.subheader("Filter Ledger by Month")
     selected_dash_month = st.selectbox("Select Month to View", options=month_options, index=datetime.now().month - 1)
-    
     query = """
     SELECT 
         tenants.tenant_name AS 'Name', 
@@ -95,19 +86,15 @@ if page == "📊 Dashboard":
     LEFT JOIN payments ON tenants.id = payments.tenant_id
     GROUP BY tenants.id, tenants.tenant_name, tenants.unique_code, rooms.room_number, rooms.monthly_rent;
     """
-    
     df = pd.read_sql(query, conn, params=(selected_dash_month, selected_dash_month, selected_dash_month))
     conn.close()
-    
     if not df.empty:
         df['Expected Rent'] = df['Expected Rent'].astype(float).round(2)
         df['Total Paid'] = df['Total Paid'].astype(float).round(2)
         df['Balance'] = df['Balance'].astype(float).round(2)
-
         total_arrears = df[df['Balance'] > 0]['Balance'].sum()
         total_overpayments = abs(df[df['Balance'] < 0]['Balance'].sum())
         unpaid_rooms_count = df[df['Balance'] > 0].shape[0]
-
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(label=f"⚠️ Arrears ({selected_dash_month})", value=f"KES {total_arrears:,.2f}")
@@ -115,10 +102,8 @@ if page == "📊 Dashboard":
             st.metric(label=f"💰 Overpayments ({selected_dash_month})", value=f"KES {total_overpayments:,.2f}")
         with col3:
             st.metric(label="👤 Rooms with Balances", value=f"{unpaid_rooms_count} Units")
-            
         st.write("---")
         st.subheader(f"Live Tenant Ledger Status — {selected_dash_month}")
-
         def highlight_rows(row):
             if row['Balance'] == 0:
                 return ['background-color: #d4edda; color: #155724;'] * len(row)
@@ -126,25 +111,21 @@ if page == "📊 Dashboard":
                 return ['background-color: #d1ecf1; color: #0c5460;'] * len(row)
             else:
                 return ['background-color: #f8d7da; color: #721c24;'] * len(row)
-
         styled_df = df.style.format({
             'Expected Rent': 'KES {:,.2f}',
             'Total Paid': 'KES {:,.2f}',
             'Balance': 'KES {:,.2f}'
         }).apply(highlight_rows, axis=1)
-        
         st.dataframe(styled_df, width='stretch')
     else:
         st.info("No active tenancies recorded. Go to 'Register Tenant' to log data.")
 
-# --- PAGE: REGISTER TENANT ---
 elif page == "👤 Register Tenant":
     st.title("Register New Tenant")
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, room_number FROM rooms;")
     rooms = {f"{r[1]}": r[0] for r in cursor.fetchall()}
-    
     with st.form("new_tenant", clear_on_submit=True):
         name = st.text_input("Name")
         phone = st.text_input("Phone Number")
@@ -157,19 +138,16 @@ elif page == "👤 Register Tenant":
             st.success(f"Registered! Tenant Code: {code}")
     conn.close()
 
-# --- PAGE: LOG PAYMENT ---
 elif page == "💰 Log Payment":
     st.title("Simulate Incoming Payment")
     with st.form("manual_payment", clear_on_submit=True):
         code_input = st.text_input("Enter Unique Code (e.g. TNT-A1B2)")
         amount_input = st.number_input("Amount Paid (KES)", min_value=0, step=500)
         target_month_input = st.selectbox("Assign Payment to Month:", options=month_options, index=datetime.now().month - 1)
-        
         if st.form_submit_button("Process Payment"):
             result = process_incoming_payment(code_input, amount_input, target_month_input)
             st.write(result)
 
-# --- PAGE: MANAGE ROOMS ---
 elif page == "🚪 Manage Rooms":
     st.title("Manage Units")
     conn = get_db_connection()
@@ -183,7 +161,6 @@ elif page == "🚪 Manage Rooms":
             st.success("Room added!")
     conn.close()
 
-# --- PAGE: PAYMENT CARDS ---
 elif page == "💳 Payment Cards":
     st.title("Generate Payment Instruction Card")
     conn = get_db_connection()
@@ -191,7 +168,6 @@ elif page == "💳 Payment Cards":
     cursor.execute("SELECT id, tenant_name, unique_code FROM tenants;")
     tenants = cursor.fetchall()
     tenant_options = {f"{t[1]} ({t[2]})": t[0] for t in tenants}
-    
     selected = st.selectbox("Select Tenant", options=list(tenant_options.keys()))
     if st.button("Generate Card"):
         t_id = tenant_options[selected]
@@ -200,34 +176,28 @@ elif page == "💳 Payment Cards":
         st.markdown(f"""
         <div style="border: 2px solid #28a745; padding: 20px; border-radius: 10px; background-color: #f8fff9; text-align: center;">
             <h2 style="color: #28a745;">LIPA NA M-PESA PAYBILL</h2>
-<p>Please use the following details to pay your rent via M-Pesa:</p>
-<hr style="border-top: 1px solid #ced4da;">
-<h3>1. Go to Lipa na M-Pesa ➡️ Pay Bill</h3>
-<h3>2. Business Number: <span style="color: #28a745; font-weight: bold;">174379</span></h3>
-<h3>3. Account Number: <span style="color: #28a745; font-weight: bold;">{code}</span></h3>
-<h3>4. Enter Amount and confirm with your PIN</h3>
-            <p><strong>Registered Tenant Reference:</strong> {name} ({code})</p>
-            <small style="color: #6c757d;">Your unique dashboard assignment identifier code is tied directly to your room records.</small>
+            <p>Please use the following details to pay your rent via M-Pesa:</p>
+            <hr style="border-top: 1px solid #ced4da;">
+            <h3>1. Go to Lipa na M-Pesa ➡️ Pay Bill</h3>
+            <h3>2. Business Number: <span style="color: #28a745; font-weight: bold;">174379</span></h3>
+            <h3>3. Account Number: <span style="color: #28a745; font-weight: bold;">{code}</span></h3>
+            <h3>4. Enter Amount and confirm with your PIN</h3>
+            <p><strong>Tenant:</strong> {name}</p>
         </div>
         """, unsafe_allow_html=True)
     conn.close()
 
-# --- PAGE: REMOVE TENANT ---
 elif page == "❌ Remove Tenant":
     st.title("Remove Permanent Leavers")
-    st.warning("⚠️ CRITICAL WARNING: Deleting a tenant will permanently erase their registration details and ALL of their associated M-Pesa payment history from the database. This action cannot be undone.")
-    
+    st.warning("⚠️ CRITICAL WARNING: Deleting a tenant will permanently erase their registration details and ALL associated payment history. This cannot be undone.")
     conn = get_db_connection()
     cursor = conn.cursor()
-    
     cursor.execute("SELECT id, tenant_name, unique_code FROM tenants;")
     tenants = cursor.fetchall()
-    
     if tenants:
         tenant_options = {f"{t[1]} ({t[2]})": t[0] for t in tenants}
         selected_tenant = st.selectbox("Select Tenant to Permanently Delete", options=list(tenant_options.keys()))
         confirm_check = st.checkbox("I confirm that this tenant has permanently left and I want to erase all their records.")
-        
         if st.button("Permanently Erase Tenant Record", type="primary"):
             if confirm_check:
                 target_id = tenant_options[selected_tenant]
@@ -235,24 +205,21 @@ elif page == "❌ Remove Tenant":
                     cursor.execute("DELETE FROM payments WHERE tenant_id = %s;", (target_id,))
                     cursor.execute("DELETE FROM tenants WHERE id = %s;", (target_id,))
                     conn.commit()
-                    st.success(f"💥 Cleaned up successfully! {selected_tenant} has been deleted.")
+                    st.success(f"💥 {selected_tenant} has been deleted.")
                     st.rerun()
                 except mysql.connector.Error as err:
                     conn.rollback()
-                    st.error(f"Database error during deletion: {err}")
+                    st.error(f"Database error: {err}")
             else:
                 st.error("Please check the confirmation box before deleting.")
     else:
-        st.info("There are currently no registered tenants in the database.")
+        st.info("No tenants in the database.")
     conn.close()
 
-# --- PAGE: NOTIFY TENANTS ---
 elif page == "🔔 Notify Tenants":
     st.title("Send Rent Due Reminders")
-
     current_month = datetime.now().strftime("%B %Y")
-    st.info(f"This will send SMS reminders to all tenants who have an outstanding balance for **{current_month}**.")
-
+    st.info(f"This will send SMS reminders to all tenants with an outstanding balance for **{current_month}**.")
     conn = get_db_connection()
     query = """
         SELECT t.tenant_name, t.phone_number, r.room_number, r.monthly_rent,
@@ -265,7 +232,6 @@ elif page == "🔔 Notify Tenants":
     """
     df = pd.read_sql(query, conn, params=(current_month,))
     conn.close()
-
     if df.empty:
         st.success(f"🎉 All tenants are fully paid for {current_month}. No reminders needed!")
     else:
@@ -276,7 +242,6 @@ elif page == "🔔 Notify Tenants":
         })
         st.warning(f"⚠️ {len(df)} tenant(s) have outstanding balances:")
         st.dataframe(df[["Tenant", "Room", "Rent", "Paid", "Balance"]])
-
         if st.button("📨 Send SMS Reminders to All", type="primary"):
             from notifier import check_and_notify_due_payments
             results = check_and_notify_due_payments()
