@@ -33,14 +33,8 @@ def generate_unique_code(cursor):
 
 def process_incoming_payment(unique_code, amount, target_month):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(buffered=True)
     
-    try:
-        cursor.execute("SELECT month_paid FROM payments LIMIT 1;")
-    except mysql.connector.Error:
-        cursor.execute("ALTER TABLE payments ADD COLUMN month_paid VARCHAR(30);")
-        conn.commit()
-
     cursor.execute("SELECT id, tenant_name FROM tenants WHERE unique_code = %s", (unique_code,))
     result = cursor.fetchone()
     
