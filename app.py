@@ -177,7 +177,7 @@ elif page == "💳 Payment Cards":
         <div style="border: 2px solid #28a745; padding: 30px; border-radius: 10px; background-color: #f8fff9; text-align: center;">
             <h2 style="color: #28a745;">RENT PAYMENT INSTRUCTIONS</h2>
             <hr style="border-top: 1px solid #ced4da;">
-            <h3>Paybill Number: <span style="color: #28a745; font-weight: bold;">174379</span></h3>
+            <h3>Paybill Number: <span style="color: #28a745; font-weight: bold;">1234567</span></h3>
             <h3>Account Number: <span style="color: #28a745; font-weight: bold;">{code}</span></h3>
             <br>
             <p><strong>Tenant:</strong> {name}</p>
