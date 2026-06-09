@@ -77,9 +77,14 @@ st.markdown("""
 }
     }
 
-    h1, h2, h3 {
-        color: #ffffff !important;
-        font-weight: 700 !important;
+   h1, h2, h3, h4, p, label, .stTextInput label, .stNumberInput label, .stSelectbox label, .stCheckbox label {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+p, label {
+    font-weight: 400 !important;
+}
     }
 
     .stAlert {
