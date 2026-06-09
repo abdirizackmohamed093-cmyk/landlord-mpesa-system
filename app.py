@@ -11,6 +11,86 @@ load_dotenv()
 
 st.set_page_config(page_title="Rental Management System", layout="wide")
 
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .stApp {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: #ffffff;
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #0f2027;
+        border-right: 1px solid #2c5364;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+
+    [data-testid="stForm"], div.stDataFrame, div.stMetric {
+        background-color: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: #a0c4ff !important;
+        font-size: 13px !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #ffffff !important;
+        font-size: 24px !important;
+        font-weight: 700 !important;
+    }
+
+    .stButton > button {
+        background: linear-gradient(90deg, #00c853, #009624);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,200,83,0.4);
+    }
+
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div {
+        background-color: rgba(255,255,255,0.08) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 8px !important;
+    }
+
+    h1, h2, h3 {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    .stAlert {
+        border-radius: 10px !important;
+    }
+
+    .stDataFrame {
+        border-radius: 10px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 def get_db_connection():
     return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
@@ -174,13 +254,13 @@ elif page == "💳 Payment Cards":
         cursor.execute("SELECT tenant_name, unique_code FROM tenants WHERE id = %s", (t_id,))
         name, code = cursor.fetchone()
         st.markdown(f"""
-        <div style="border: 2px solid #28a745; padding: 30px; border-radius: 10px; background-color: #f8fff9; text-align: center;">
-            <h2 style="color: #28a745;">RENT PAYMENT INSTRUCTIONS</h2>
-            <hr style="border-top: 1px solid #ced4da;">
-            <h3>Paybill Number: <span style="color: #28a745; font-weight: bold;">1234567</span></h3>
-            <h3>Account Number: <span style="color: #28a745; font-weight: bold;">{code}</span></h3>
+        <div style="border: 2px solid #00c853; padding: 30px; border-radius: 12px; background: rgba(0,200,83,0.08); text-align: center;">
+            <h2 style="color: #00c853;">RENT PAYMENT INSTRUCTIONS</h2>
+            <hr style="border-top: 1px solid rgba(255,255,255,0.2);">
+            <h3 style="color: #ffffff;">Paybill Number: <span style="color: #00c853; font-weight: bold;">1234567</span></h3>
+            <h3 style="color: #ffffff;">Account Number: <span style="color: #00c853; font-weight: bold;">{code}</span></h3>
             <br>
-            <p><strong>Tenant:</strong> {name}</p>
+            <p style="color: #ffffff;"><strong>Tenant:</strong> {name}</p>
         </div>
         """, unsafe_allow_html=True)
     conn.close()
